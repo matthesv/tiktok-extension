@@ -1,0 +1,154 @@
+body {
+    font-family: Arial, sans-serif;
+    width: 350px;
+    background-color: #f4f4f9;
+    color: #333;
+    margin: 0;
+}
+
+.container {
+    padding: 15px;
+}
+
+header {
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+h1 {
+    font-size: 20px;
+    margin: 0 0 10px 0;
+    color: #000;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 2px solid #ddd;
+}
+
+.tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 16px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.tab.active {
+    border-bottom: 2px solid #fe2c55;
+    color: #fe2c55;
+    font-weight: bold;
+}
+
+.tab-content {
+    display: none;
+    padding: 15px 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.counter-section p {
+    font-size: 16px;
+    text-align: center;
+    margin: 0 0 15px 0;
+}
+
+.counter-section span {
+    font-weight: bold;
+    color: #fe2c55;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+button {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #f0f0f0;
+}
+
+.stop-button {
+    background-color: #fe2c55;
+    color: white;
+    font-weight: bold;
+}
+
+.stop-button:hover {
+    background-color: #e01e48;
+}
+
+.options {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.settings-group {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.settings-grid label, .slider-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+    color: #555;
+    font-weight: bold;
+}
+
+.slider-container {
+    margin-bottom: 10px;
+}
+
+.slider-container:last-child {
+    margin-bottom: 0;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+#resetScrollCountButton {
+    width: 100%;
+    background-color: #6c757d;
+    color: white;
+}

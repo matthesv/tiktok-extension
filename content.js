@@ -72,17 +72,28 @@ async function clickFollowButtonsWithScroll(maxClicks, delay) {
 
         const buttons = container.querySelectorAll('button[data-e2e="follow-button"]');
         if (buttons.length > 0) {
-            const button = buttons[0]; // Immer den ersten verfügbaren Button nehmen
-            button.click();
-            clickCount++;
+            const buttonIndex = clickCount % buttons.length;
+            const button = buttons[buttonIndex];
+            if (button) {
+                button.click();
+                clickCount++;
 
-            // Update an das Popup senden
-            chrome.runtime.sendMessage({ type: "click-update", count: clickCount });
-            chrome.storage.local.set({ clickCount }); // Im Speicher sichern
+                // Update an das Popup senden
+                chrome.runtime.sendMessage({ type: "click-update", count: clickCount });
+                chrome.storage.local.set({ clickCount });
 
-            // Warten, bevor der nächste Klick erfolgt
-            await new Promise(resolve => setTimeout(resolve, delay));
-            clickLoop();
+                if (clickCount % 8 === 0) {
+                    container.scrollBy({ top: 550, behavior: 'smooth' });
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+                clickLoop();
+            } else {
+                console.log("Button an Index nicht gefunden, versuche erneut.");
+                await new Promise(resolve => setTimeout(resolve, delay));
+                clickLoop();
+            }
         } else {
             // Wenn keine Follow-Buttons mehr da sind, versuche den Weiter-Button
             const nextBtn = findNextButton();

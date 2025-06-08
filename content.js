@@ -92,15 +92,15 @@ function startAutoScroll(autoLike, autoSave, baseInterval, randomDelay, likeChan
     });
 
     const scrollLoop = () => {
-        // 1. Klicke auf den "Nächstes Video"-Button
-        // Wir verwenden einen robusten Selector, der in den meisten TikTok-Versionen funktioniert
-        const nextButton = document.querySelector('button[data-e2e="arrow-right"]');
-        if (!nextButton) {
+        // 1. Klicke auf das Symbol des "Nächstes Video"-Buttons und ermittle den eigentlichen Button
+        const nextButtonIcon = document.querySelector('#main-content-homepage_hot > aside > div > div:nth-child(2) > button > div');
+        const parentButton = nextButtonIcon ? nextButtonIcon.closest('button') : null;
+        if (!parentButton) {
             console.error("Nächstes-Video-Button nicht gefunden. Scroll wird gestoppt.");
             stopAutoScroll();
             return;
         }
-        nextButton.click();
+        parentButton.click();
         console.log("Zum nächsten Video gescrollt.");
 
         scrollCount++;

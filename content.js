@@ -5,10 +5,27 @@
 // Globale Variable, um den Follow-Prozess zu steuern
 let isFollowingStopped = false;
 
-function clickFollowButtonsWithScroll(maxClicks, delay) {
+/**
+ * Wartet, bis ein Element im DOM erscheint.
+ * @param {string} selector - CSS-Selektor des gesuchten Elements
+ * @param {number} timeout - Maximale Wartezeit in Millisekunden
+ * @param {number} interval - Intervall zwischen den Suchläufen in Millisekunden
+ * @returns {Promise<Element|null>} - Gefundenes Element oder null, falls nicht gefunden
+ */
+async function waitForElement(selector, timeout = 10000, interval = 500) {
+    const endTime = Date.now() + timeout;
+    while (Date.now() < endTime) {
+        const el = document.querySelector(selector);
+        if (el) return el;
+        await new Promise(res => setTimeout(res, interval));
+    }
+    return null;
+}
+
+async function clickFollowButtonsWithScroll(maxClicks, delay) {
     isFollowingStopped = false; // Zurücksetzen beim Start
     const containerSelector = 'div[data-e2e="recommend-list-container"]';
-    const container = document.querySelector(containerSelector);
+    const container = await waitForElement(containerSelector);
 
     if (!container) {
         console.error("Follow-Container nicht gefunden.");

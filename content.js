@@ -1,5 +1,4 @@
 // Diese Datei wird nicht direkt geladen. Ihre Funktionen werden von popup.js injiziert.
-
 // ## FOLLOW FUNKTIONEN ##
 
 // Globale Variable, um den Follow-Prozess zu steuern
@@ -68,7 +67,7 @@ function clickFollowButtonsWithScroll(maxClicks, delay) {
                 }
             }
         } else {
-            console.log("Clics terminés.");
+            console.log("Klicks beendet.");
         }
     };
 

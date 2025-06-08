@@ -49,11 +49,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function executeScript(func, args = []) {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs.length === 0) return;
+            const tabId = tabs[0].id;
+
+            // Zuerst content.js in die Seite injizieren, damit alle Helferfunktionen
+            // vorhanden sind. Anschließend die gewünschte Funktion ausführen.
             chrome.scripting.executeScript({
-                target: { tabId: tabs[0].id },
-                func: func,
-                args: args
-            }).catch(err => console.error("Skript-Fehler:", err));
+                target: { tabId },
+                files: ['content.js']
+            }, () => {
+                chrome.scripting.executeScript({
+                    target: { tabId },
+                    func: func,
+                    args: args
+                }).catch(err => console.error('Skript-Fehler:', err));
+            });
         });
     }
 

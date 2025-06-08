@@ -24,8 +24,24 @@ async function waitForElement(selector, timeout = 10000, interval = 500) {
 
 async function clickFollowButtonsWithScroll(maxClicks, delay) {
     isFollowingStopped = false; // Zurücksetzen beim Start
-    const containerSelector = 'div[data-e2e="recommend-list-container"]';
-    const container = await waitForElement(containerSelector);
+
+    const possibleSelectors = [
+        'div[data-e2e="recommend-list-container"]',
+        '#tux-portal-container div.css-wq5jjc-DivUserListContainer.eorzdsw0'
+    ];
+
+    let container = null;
+    for (const sel of possibleSelectors) {
+        container = document.querySelector(sel);
+        if (container) break;
+    }
+
+    if (!container) {
+        for (const sel of possibleSelectors) {
+            container = await waitForElement(sel, 5000);
+            if (container) break;
+        }
+    }
 
     if (!container) {
         console.error("Follow-Container nicht gefunden.");
@@ -109,9 +125,22 @@ function startAutoScroll(autoLike, autoSave, baseInterval, randomDelay, likeChan
     });
 
     const scrollLoop = () => {
-        // 1. Klicke auf das Symbol des "Nächstes Video"-Buttons und ermittle den eigentlichen Button
-        const nextButtonIcon = document.querySelector('#main-content-homepage_hot > aside > div > div:nth-child(2) > button > div');
-        const parentButton = nextButtonIcon ? nextButtonIcon.closest('button') : null;
+        // 1. Suche nach dem "Nächstes Video"-Button mit verschiedenen Selektoren
+        const findNextButton = () => {
+            const selectors = [
+                '#main-content-homepage_hot > aside > div > div:nth-child(2) > button > div',
+                'button[data-e2e="arrow-right"]',
+                'button[aria-label*="next" i]',
+                'button[aria-label*="weiter" i]'
+            ];
+            for (const sel of selectors) {
+                const el = document.querySelector(sel);
+                if (el) return el.closest('button') || el;
+            }
+            return Array.from(document.querySelectorAll('button')).find(b => /weiter|next/i.test(b.textContent));
+        };
+
+        const parentButton = findNextButton();
         if (!parentButton) {
             console.error("Nächstes-Video-Button nicht gefunden. Scroll wird gestoppt.");
             stopAutoScroll();

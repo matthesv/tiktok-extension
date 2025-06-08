@@ -53,7 +53,7 @@ function stopClicking() {
 }
 
 
-// ## SCROLL FUNKTIONEN (ÜBERARBEITET) ##
+// ## SCROLL FUNKTIONEN (ÜBERARBEITET NACH URSPRÜNGLICHER LOGIK) ##
 
 // Globale Variable für das Scroll-Timeout
 let scrollTimeoutId = null;
@@ -70,7 +70,8 @@ function startAutoScroll(autoLike, autoSave, baseInterval, randomDelay, likeChan
     });
 
     const scrollLoop = () => {
-        // 1. Nächstes Video-Button finden und klicken
+        // 1. Klicke auf den "Nächstes Video"-Button
+        // Wir verwenden einen robusten Selector, der in den meisten TikTok-Versionen funktioniert
         const nextButton = document.querySelector('button[data-e2e="arrow-right"]');
         if (!nextButton) {
             console.error("Nächstes-Video-Button nicht gefunden. Scroll wird gestoppt.");
@@ -84,29 +85,46 @@ function startAutoScroll(autoLike, autoSave, baseInterval, randomDelay, likeChan
         chrome.runtime.sendMessage({ type: "scroll-update", count: scrollCount });
         chrome.storage.local.set({ scrollCount });
 
-        // 2. Eine feste Verzögerung einplanen, damit das Video laden kann
+        // 2. Warte kurz, damit die Seite und die Video-Elemente laden können
         setTimeout(() => {
-            const currentVideoContainer = document.querySelector('div[data-e2e="player-container"]');
-            if(currentVideoContainer) {
-                // 3. Aktionen (Liken/Speichern) mit Zufallswahrscheinlichkeit ausführen
+            // 3. Finde das aktuell sichtbare Video-Element. TikTok lädt mehrere Video-Karten
+            // in den DOM. Wir müssen die richtige finden, um Aktionen auszuführen.
+            const videoCards = document.querySelectorAll('div[data-e2e="recommend-list-item-container"]');
+            
+            // Diese Schleife geht die geladenen Videos durch. Oft ist das zweite oder dritte
+            // Element das aktive, nachdem gescrollt wurde.
+            for (let i = 0; i < videoCards.length; i++) {
+                const card = videoCards[i];
+                let interactionSuccessful = false;
+
+                // Führe Like-Aktion mit Zufallswahrscheinlichkeit aus
                 if (autoLike && Math.random() < likeChance) {
-                    const likeButton = currentVideoContainer.querySelector('button[data-e2e="like-button"]');
+                    const likeButton = card.querySelector('button[data-e2e="like-button"]');
                     if (likeButton) {
                         likeButton.click();
                         console.log("Video geliked (zufällig).");
+                        interactionSuccessful = true;
                     }
                 }
+                
+                // Führe Speicher-Aktion mit Zufallswahrscheinlichkeit aus
                 if (autoSave && Math.random() < saveChance) {
-                     const saveButton = currentVideoContainer.querySelector('button[data-e2e="favorite-button"]');
+                     const saveButton = card.querySelector('button[data-e2e="favorite-button"]');
                      if (saveButton) {
                          saveButton.click();
                          console.log("Video gespeichert (zufällig).");
+                         interactionSuccessful = true;
                      }
                 }
-            }
-        }, 2000); // 2 Sekunden Wartezeit, um Aktionen nach dem Scrollen zu ermöglichen
 
-        // 4. Den nächsten Scroll mit zufälliger Verzögerung planen
+                // Wenn eine Aktion erfolgreich war, stoppen wir die Suche für dieses Video.
+                if(interactionSuccessful) {
+                    break;
+                }
+            }
+        }, 2500); // Leicht erhöhte Wartezeit für mehr Stabilität
+
+        // 4. Plane den nächsten Scroll-Vorgang mit zufälliger Verzögerung
         const nextDelay = baseInterval + (Math.random() * randomDelay);
         console.log(`Nächster Scroll in ${(nextDelay / 1000).toFixed(2)} Sekunden.`);
         

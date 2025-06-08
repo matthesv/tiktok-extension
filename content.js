@@ -17,6 +17,20 @@ function clickFollowButtonsWithScroll(maxClicks, delay) {
 
     let clickCount = 0;
 
+    const findNextButton = () => {
+        // Versucht, verschiedene Varianten des "Weiter"-Buttons zu finden
+        const selectors = [
+            'button[data-e2e="arrow-right"]',
+            'button[aria-label*="weiter" i]',
+            'button[aria-label*="next" i]'
+        ];
+        for (const sel of selectors) {
+            const btn = document.querySelector(sel);
+            if (btn) return btn;
+        }
+        return Array.from(document.querySelectorAll('button')).find(b => /weiter/i.test(b.textContent));
+    };
+
     const clickLoop = async () => {
         if (clickCount >= maxClicks || isFollowingStopped) {
             console.log("Follow-Aktion beendet.");
@@ -28,7 +42,7 @@ function clickFollowButtonsWithScroll(maxClicks, delay) {
             const button = buttons[0]; // Immer den ersten verfügbaren Button nehmen
             button.click();
             clickCount++;
-            
+
             // Update an das Popup senden
             chrome.runtime.sendMessage({ type: "click-update", count: clickCount });
             chrome.storage.local.set({ clickCount }); // Im Speicher sichern
@@ -37,9 +51,17 @@ function clickFollowButtonsWithScroll(maxClicks, delay) {
             await new Promise(resolve => setTimeout(resolve, delay));
             clickLoop();
         } else {
-            // Scrollen, um mehr Buttons zu laden
-            container.scrollTop = container.scrollHeight;
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Warten, bis neue Inhalte geladen sind
+            // Wenn keine Follow-Buttons mehr da sind, versuche den Weiter-Button
+            const nextBtn = findNextButton();
+            if (nextBtn) {
+                nextBtn.click();
+                console.log('Weiter-Button geklickt.');
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            } else {
+                // Fallback: Scrollen, um mehr Buttons zu laden
+                container.scrollTop = container.scrollHeight;
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
             clickLoop();
         }
     };

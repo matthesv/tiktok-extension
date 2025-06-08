@@ -7,7 +7,7 @@ let isFollowingStopped = false;
 
 function clickFollowButtonsWithScroll(maxClicks, delay) {
     isFollowingStopped = false; // Zurücksetzen beim Start
-    const containerSelector = 'div[data-e2e="recommend-list-container"]';
+    const containerSelector = '#tux-portal-container > div > div:nth-child(2) > div > div > div.css-17s26nl-ModalContentContainer.e1wuf0b31 > div > div > section > div > div.css-wq5jjc-DivUserListContainer.eorzdsw0';
     const container = document.querySelector(containerSelector);
 
     if (!container) {
@@ -17,34 +17,66 @@ function clickFollowButtonsWithScroll(maxClicks, delay) {
 
     let clickCount = 0;
 
-    const clickLoop = async () => {
-        if (clickCount >= maxClicks || isFollowingStopped) {
-            console.log("Follow-Aktion beendet.");
-            return;
+    const getButtons = () => document.querySelectorAll('button[data-e2e="follow-button"]');
+
+    const findNextButton = () => {
+        const selectors = [
+            'button[data-e2e="arrow-right"]',
+            'button[aria-label*="weiter" i]',
+            'button[aria-label*="next" i]'
+        ];
+        for (const sel of selectors) {
+            const btn = document.querySelector(sel);
+            if (btn) return btn;
         }
+        return Array.from(document.querySelectorAll('button')).find(b => /weiter|next/i.test(b.textContent));
+    };
 
-        const buttons = container.querySelectorAll('button[data-e2e="follow-button"]');
-        if (buttons.length > 0) {
-            const button = buttons[0]; // Immer den ersten verfügbaren Button nehmen
-            button.click();
-            clickCount++;
-            
-            // Update an das Popup senden
-            chrome.runtime.sendMessage({ type: "click-update", count: clickCount });
-            chrome.storage.local.set({ clickCount }); // Im Speicher sichern
-
-            // Warten, bevor der nächste Klick erfolgt
-            await new Promise(resolve => setTimeout(resolve, delay));
-            clickLoop();
+    const clickButton = () => {
+        if (clickCount < maxClicks && !isFollowingStopped) {
+            const buttons = getButtons();
+            if (buttons.length > 0) {
+                const button = buttons[clickCount % buttons.length];
+                if (button) {
+                    try {
+                        button.click();
+                        clickCount++;
+                        chrome.runtime.sendMessage({ type: "click-update", count: clickCount });
+                        chrome.storage.local.set({ clickCount });
+                    } catch (error) {
+                        console.error("Fehler beim Klicken:", error);
+                    }
+                    if (clickCount % 8 === 0) {
+                        container.scrollBy({ top: 550, behavior: 'smooth' });
+                        setTimeout(clickButton, 1500);
+                    } else {
+                        setTimeout(clickButton, delay);
+                    }
+                } else {
+                    console.log("Kein Button verfügbar.");
+                    setTimeout(clickButton, delay);
+                }
+            } else {
+                const nextBtn = findNextButton();
+                if (nextBtn) {
+                    nextBtn.click();
+                    console.log('Weiter-Button geklickt.');
+                    setTimeout(clickButton, 2000);
+                } else {
+                    container.scrollBy({ top: 550, behavior: 'smooth' });
+                    setTimeout(clickButton, 2000);
+                }
+            }
         } else {
-            // Scrollen, um mehr Buttons zu laden
-            container.scrollTop = container.scrollHeight;
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Warten, bis neue Inhalte geladen sind
-            clickLoop();
+            console.log("Clics terminés.");
         }
     };
 
-    clickLoop();
+    clickButton();
+
+    window.stopClicking = () => {
+        isFollowingStopped = true;
+    };
 }
 
 function stopClicking() {

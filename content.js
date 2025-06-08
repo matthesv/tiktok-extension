@@ -74,7 +74,7 @@ async function clickFollowButtonsWithScroll(maxClicks, delay) {
         if (buttons.length > 0) {
             const buttonIndex = clickCount % buttons.length;
             const button = buttons[buttonIndex];
-            if (button) {
+            if (button && button.getAttribute('data-e2e') === 'follow-button') {
                 button.click();
                 clickCount++;
 
